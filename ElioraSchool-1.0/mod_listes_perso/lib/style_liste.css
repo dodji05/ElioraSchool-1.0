@@ -1,0 +1,272 @@
+
+/* 
+    Created on : 11 oct. 2015, 13:14:46
+    Author     : bouguin
+*/
+
+/*===== page administrateur =====*/
+.colAdmin {
+   display: table-cell;
+   padding-top: 0.5em;
+   padding-right: 0.5em;
+   padding-bottom: 0.5em;
+   padding-left: 0.5em;
+   vertical-align: middle;
+   border:none;
+   font-size: larger;
+}
+
+.colAdmin:first-child {
+   width:3em; 
+   text-align: center; 
+   font-weight: normal;
+}
+
+/*===== page enseignant =====*/
+fieldset {
+    border-radius: .5em;
+}
+
+.menu_entete_liste {
+    margin-bottom: 0px;
+    padding-bottom: 0px;
+}
+
+.menu_liste {
+    display: inline;
+    list-style: none; /* pour enlever les puces sur IE7 */
+    margin: 10px;
+    text-align: center;
+}
+
+.menu_liste a {
+    display: inline-block;
+    background: #ddd;
+    font-weight: bold;
+    text-decoration: none;
+    color: #000;
+    width: 15em;
+    padding: 5px 10px;
+    margin-bottom: 0px;
+    border-style: none;
+    border-top-left-radius:2em;
+    border-top-right-radius:2em;
+    border-width: 1px;
+    border-color: black;
+} 
+
+.menu_liste span {
+    display: inline-block;
+    background: #ddd;
+    font-weight: bold;
+    text-decoration: none;
+    color: #000;
+    width: 5em;
+    margin-left: 10em;
+    padding: 5px 10px;
+    margin-bottom: 0px;
+    border-style: none;
+    border-top-left-radius:2em;
+    border-top-right-radius:2em;
+    border-width: 1px;
+    border-color: black;
+    cursor:pointer;
+} 
+
+.menu_actif a {
+    color: #000;
+}
+
+#tableau {
+} 
+
+#affichage {
+} 
+
+#eleves {
+} 
+
+#construction { 
+} 
+
+#laListe{
+    min-height: 20em;
+    display:block;
+}
+
+#cadre_laListe{
+    min-height: 20em;   
+}
+
+#cache {
+   display: none;
+}
+
+#montre {
+   display: block;
+}
+
+.lien_actif a {
+    background: #ccc;
+}
+
+.div_construit {
+    padding: 5px 10px;
+    margin-top: 0px;
+    background: #ddd;
+    border-style: none;
+    border-width: 1px;
+    border-color: black;
+    border-radius: 10px;
+    min-height: 4em; 
+}
+   
+.div_actif {
+    background: #ccc;
+}
+
+ .colG65 {
+    display: table-cell;
+    width: 65%;
+}
+colC20 {
+   display: table-cell;
+    width: 25%;
+    text-align: center;
+}
+.colD15 {
+   display: table-cell;
+    width: 10%;
+    text-align: center;
+}
+
+#tableauListe {
+    width: 100%;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #bbb;
+    border-left-color: #888;
+    border-bottom-color: #888;
+}
+
+#tableauListe th{
+    border-width: 1px;
+    border-style: solid;
+    border-color: #bbb;
+    border-left-color: #888;
+    border-bottom-color: #888;
+}
+
+#tableauListe th input{
+   background: #ccc;
+   border-style: none;
+   font-weight: bold;
+   border-radius:.5em;
+   padding: .1em .5em;
+   text-align: center;
+}
+
+
+#tableauListe td{
+    border-width: 1px;
+    border-style: solid;
+    border-color: #bbb;
+    border-left-color: #888;
+    border-bottom-color: #888;
+}
+
+.photoElv{
+  width: 64px;
+}
+ 
+
+@media print {
+   ul {
+	 display: none;
+   }
+   
+   input {
+	 display:none;
+   }
+	 
+   .center {
+	 text-align:center;
+   }
+   
+   div {
+	  border-width: 1px;
+	  border-style: solid;
+	  border-color: #bbb;
+   }
+   
+   #bandeau {
+	 display: none;
+   }
+   
+   .menu_entete_liste{
+	 display: none;
+   }
+   
+   #tableau {
+	 display: none;
+   }
+   
+   #eleves {
+	 display: none;
+   }
+   
+   #construction {
+	 display: none;
+   }
+   
+   #affichage {
+	 display: none;
+   }
+
+   .div_construit {
+	 display:none;
+   }
+   
+   #tableau fieldset {
+	 display:none;
+   }
+   
+   #eleves fieldset {
+	 display: none;
+   }
+   
+   #construction fieldset {
+	 display: none;
+   }
+   
+   #affichage fieldset {
+	 display: none;
+   }
+   
+   .imageSupprime {
+	 display:none;
+   }
+   
+   table caption {
+	 font-weight : bold;
+	 padding-bottom: .5em;
+   }
+
+   #laListe{
+	  min-height: 0em;
+   }
+
+   #cadre_laListe{
+	  min-height: 0em;   
+   }
+   
+  .photoElv{
+	width: 40px;
+  }
+  
+  table {
+	overflow: visible !important;
+  }
+
+}
+

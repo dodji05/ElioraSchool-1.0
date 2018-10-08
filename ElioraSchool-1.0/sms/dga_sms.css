@@ -1,0 +1,16 @@
+.text-input-bg textarea {
+    -moz-border-radius: 10px 10px 10px 10px;
+    -webkit-border-radius: 10px;
+    background-color: #EEEEEE;
+    border: 1px solid #C6C6C6;
+    height: 100px;
+    padding: 3px 6px;
+    width: 200px;
+}
+.msg_area {
+    float: left;
+    width: 500px;
+    margin-left: 80px;
+    margin-top: 23px;
+    height: auto;
+}

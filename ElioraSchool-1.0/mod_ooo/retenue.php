@@ -1,0 +1,343 @@
+<?php
+/*
+ * Copyright 2001, 2013 Thomas Belliard, Laurent Delineau, Edouard Hue, Eric Lebrun
+ *
+ * This file is part of GEPI.
+ *
+ * GEPI is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * GEPI is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GEPI; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
+// Initialisations files
+require_once("../lib/initialisations.inc.php");
+
+// Resume session
+$resultat_session = $session_gepi->security_check();
+if ($resultat_session == 'c') {
+	header("Location: ../utilisateurs/mon_compte.php?change_mdp=yes");
+	die();
+} else if ($resultat_session == '0') {
+	header("Location: ../logout.php?auto=1");
+	die();
+}
+
+// SQL : INSERT INTO droits VALUES ( '/mod_ooo/retenue.php', 'V', 'V', 'V', 'V', 'F', 'F', 'F', 'F', 'Modèle Ooo : retenue', '');
+// maj : $tab_req[] = "INSERT INTO droits VALUES ( '/mod_ooo/retenue.php', 'V', 'V', 'V', 'V', 'F', 'F', 'F', 'F', 'Modèle Ooo : Retenue', '');;";
+if (!checkAccess()) {
+    header("Location: ../logout.php?auto=1");
+	die();
+}
+
+
+include_once('./lib/lib_mod_ooo.php');
+
+include_once('../tbs/tbs_class.php');
+include_once('../tbs/plugins/tbs_plugin_opentbs.php');
+
+include_once('../mod_discipline/sanctions_func_lib.php'); // la librairie de fonction du module discipline pour la fonction p_nom , u_p_nom, nombre_report
+
+//debug_var();
+
+//
+// Zone de traitement des données qui seront fusionnées au modèle
+// Chacune correspond à une variable définie dans le modèle
+// ATTENTION S'il y a des TABLEAUX à TRAITER Voir en BAS DU FICHIER PARTIE TABLEAU (Merge)
+//
+//On récupère les coordonnées du collège dans Gepi ==> $gepiSettings['nom_setting']
+$ets_anne_scol = $gepiSettings['gepiSchoolName'];
+$ets_nom = $gepiSettings['gepiSchoolName'];
+$ets_adr1 = $gepiSettings['gepiSchoolAdress1'];
+$ets_adr2 = $gepiSettings['gepiSchoolAdress2'];
+$ets_cp = $gepiSettings['gepiSchoolZipCode'];
+$ets_ville = $gepiSettings['gepiSchoolCity'];
+$ets_tel = $gepiSettings['gepiSchoolTel'];
+$ets_fax = $gepiSettings['gepiSchoolFax'];
+$ets_email = $gepiSettings['gepiSchoolEmail'];
+ 
+ 
+// recupération des parametres
+$mode=isset($_POST['mode']) ? $_POST['mode'] : (isset($_GET['mode']) ? $_GET['mode'] : NULL); // Les informations viennent d'où ? si mode = module_discipline ==> du module discipline
+$id_incident=isset($_POST['id_incident']) ? $_POST['id_incident'] : (isset($_GET['id_incident']) ? $_GET['id_incident'] : NULL); 
+$ele_login=isset($_POST['ele_login']) ? $_POST['ele_login'] : (isset($_GET['ele_login']) ? $_GET['ele_login'] : NULL); 
+$id_sanction=isset($_POST['id_sanction']) ? $_POST['id_sanction'] : (isset($_GET['id_sanction']) ? $_GET['id_sanction'] : NULL); 
+
+// Identifiant du responsable pour lequel faire l'impression
+$pers_id=isset($_POST['pers_id']) ? $_POST['pers_id'] : (isset($_GET['pers_id']) ? $_GET['pers_id'] : NULL); 
+
+//Initialisation des données du modèle Ooo Retenue
+$date ='';
+$nom_prenom_eleve ='';
+$classe ='';
+$motif = '';
+$travail ='';
+$nom_resp ='';
+$fct_resp ='';
+$date_retenue ='';
+$lieu = '';
+$duree ='';
+$h_deb ='';
+$num_incident = '';
+$nb_report='';
+$texte_report='';
+$materiel='';
+
+//echo "\$mode=$mode<br />";
+//echo "\$id_incident=$id_incident<br />";
+
+// mode = module_discipline, on vient de la page saisie incident du module discipline
+// mode = module_retenue, on vient de la partie sanction du module discipline et de la sanction : retenue
+if (($mode=='module_discipline')||($mode=='module_retenue')) {
+	// on récupère les données à transmettre au modèle de retenue open office.
+	$sql_incident="SELECT * FROM `s_incidents` WHERE `id_incident`=$id_incident";
+	$res_incident=mysqli_query($GLOBALS["mysqli"], $sql_incident);
+	if(mysqli_num_rows($res_incident)>0) {
+		$lig_incident=mysqli_fetch_object($res_incident);
+		
+		//traitement de la date mysql
+		$date=datemysql_to_jj_mois_aaaa($lig_incident->date,'-','o');
+		
+		//traitement du motif et du travail
+		$motif = $lig_incident->description;
+		$travail ='Donné sur place'; // texte par défaut, c'est un enseignant qui rédige l'incident, il n'y a pas de possibilité de saisir le travail.
+
+		$nature_incident=$lig_incident->nature;
+
+		// le nom et le prénom de l'élève
+		$nom_prenom_eleve =p_nom($ele_login,"Pn");
+		
+		// la classe de l'élève
+		$tmp_tab=get_class_from_ele_login($ele_login);
+		if(isset($tmp_tab['liste'])) {
+			$classe= $tmp_tab['liste'];
+		} else {
+		    $classe = '';
+		}
+
+		if(isset($pers_id)) {
+			$sql="SELECT rp.civilite,rp.nom,rp.prenom,ra.adr1,ra.adr2,ra.adr3,ra.cp,ra.commune FROM resp_pers rp, resp_adr ra, responsables2 r, eleves e WHERE rp.pers_id=r.pers_id AND rp.adr_id=ra.adr_id AND r.ele_id=e.ele_id AND e.login='$ele_login' AND r.pers_id='$pers_id' ORDER BY r.resp_legal;";
+		}
+		else {
+			$sql="SELECT rp.civilite,rp.nom,rp.prenom,ra.adr1,ra.adr2,ra.adr3,ra.cp,ra.commune FROM resp_pers rp, resp_adr ra, responsables2 r, eleves e WHERE rp.pers_id=r.pers_id AND rp.adr_id=ra.adr_id AND r.ele_id=e.ele_id AND e.login='$ele_login' AND (r.resp_legal='1' OR r.resp_legal='2') ORDER BY r.resp_legal;";
+		}
+		$res_resp=mysqli_query($GLOBALS["mysqli"], $sql);
+		if(mysqli_num_rows($res_resp)==0) {
+			$ad_nom_resp="";
+			$adr1_resp="";
+			$adr2_resp="";
+			$adr3_resp="";
+			$cp_resp="";
+			$commune_resp="";
+		}
+		else {
+			$lig_resp=mysqli_fetch_object($res_resp);
+			$ad_nom_resp=$lig_resp->civilite." ".$lig_resp->nom." ".$lig_resp->prenom;
+			$adr1_resp=$lig_resp->adr1;
+			$adr2_resp=$lig_resp->adr2;
+			$adr3_resp=$lig_resp->adr3;
+			$cp_resp=$lig_resp->cp;
+			$commune_resp=$lig_resp->commune;
+		}
+
+		//le déclarant On récupère le nom et le prénom (et la qualité)
+		$sql="SELECT nom,prenom,civilite,statut FROM utilisateurs WHERE login='$lig_incident->declarant';";
+		//echo "$sql<br />\n";
+		$res=mysqli_query($GLOBALS["mysqli"], $sql);
+		if(mysqli_num_rows($res)>0) {
+			$lig=mysqli_fetch_object($res);
+			//var retenue
+			$nom_resp = $lig->civilite." ".strtoupper($lig->nom)." ".ucfirst(mb_substr($lig->prenom,0,1)).".";
+		}
+		else {
+			echo "ERREUR: Login $lig_incident->declarant";
+		}
+
+		if($lig->statut=='autre') {
+
+			$sql = "SELECT ds.id, ds.nom_statut FROM droits_statut ds, droits_utilisateurs du
+											WHERE du.login_user = '".$lig_incident->declarant."'
+											AND du.id_statut = ds.id;";
+			$query = mysqli_query($GLOBALS["mysqli"], $sql);
+			$result = mysqli_fetch_array($query);
+	        
+			//var retenue
+			$fct_resp = $result['nom_statut'] ;
+		}
+		else {
+			$fct_resp = $lig->statut ;
+		}
+
+	$fct_resp = ucfirst($fct_resp);
+		
+	} else {
+		//$nature_incident="";
+		return "INCIDENT INCONNU";
+	}
+	
+	//var retenue
+	$num_incident = $id_incident;
+
+	//On Traite ici la date et l'heure de la retenue posée
+	if ($mode=='module_retenue') {	
+	     $sql_sanction = "SELECT * FROM `s_retenues` WHERE `id_sanction`=$id_sanction";
+	     $res_sanction=mysqli_query($GLOBALS["mysqli"], $sql_sanction);
+	    if(mysqli_num_rows($res_sanction)>0) {
+			$lig_sanction=mysqli_fetch_object($res_sanction);
+			
+			$date_retenue = datemysql_to_jj_mois_aaaa($lig_sanction->date,'-','o');
+			
+			if ($lig_sanction->duree>1) {
+			  $duree = $lig_sanction->duree." heures";
+			} else {
+			  $duree = $lig_sanction->duree." heure";
+			}
+			
+			$travail = $lig_sanction->travail;
+			$lieu = $lig_sanction->lieu;
+            
+            if ($lig_sanction->materiel) $materiel = $lig_sanction->materiel;
+			
+			
+			//recherche de l'heure de début. C'est le crénaux qui est enregistré.
+			$sql_heure = "SELECT * FROM `edt_creneaux` WHERE `nom_definie_periode`='$lig_sanction->heure_debut'";
+			//echo $sql_heure;
+			$res_heure = mysqli_query($GLOBALS["mysqli"], $sql_heure);
+			if(mysqli_num_rows($res_heure)>0) {
+			    $lig_heure=mysqli_fetch_object($res_heure); 
+				$h_deb = $lig_heure->heuredebut_definie_periode;
+				//on affiche que les 5 1er caratèeres de l'heure
+				$h_deb=mb_substr($h_deb,0,5);
+				//remplacement des : par H dans la chaine
+				$h_deb=str_replace(":","H", $h_deb);
+			} else {
+			  
+			  // LE CRENEAU EST INCONNU on se retrouve dans le cas d'une heure saisie à la main.
+			  $h_deb = $lig_sanction->heure_debut;
+			}
+
+			//Traitement d'un eventuel report
+			$nb_report=nombre_reports($lig_sanction->id_sanction,0);
+			if ($nb_report<>0) {
+			  $texte_report="REPORT N° ".$nb_report;
+			} else {
+			  $texte_report="";
+			}
+			
+	    } else {
+			return "LA RETENUE EST INCONNUE";
+		}     
+	} // mode = module retenue	
+} //if mode = module discipline  
+
+if ($mode=='formulaire_retenue') { //les donnée provenant du formulaire 
+    if (isset($_SESSION['retenue_date'])) {
+        $date = datemysql_to_jj_mois_aaaa($_SESSION['retenue_date'],'/','n');
+	    //session_unregister("retenue_date");
+	    unset($_SESSION['retenue_date']);
+	}
+	if (isset($_SESSION['retenue_nom_prenom_elv'])) {
+		$nom_prenom_eleve =$_SESSION['retenue_nom_prenom_elv'];
+		//session_unregister("retenue_nom_prenom_elv");
+	    unset($_SESSION['retenue_nom_prenom_elv']);
+	}
+	if (isset($_SESSION['retenue_classe_elv'])) {
+		$classe = $_SESSION['retenue_classe_elv'];
+		//session_unregister("retenue_classe_elv");
+	    unset($_SESSION['retenue_classe_elv']);
+	}
+	if (isset($_SESSION['retenue_motif'])) {
+		$motif = $_SESSION['retenue_motif'];
+		$motif=traitement_magic_quotes(corriger_caracteres($motif));
+		// Contrôle des saisies pour supprimer les sauts de lignes surnuméraires.
+		$motif=suppression_sauts_de_lignes_surnumeraires($motif);
+		//session_unregister("retenue_motif");
+	    unset($_SESSION['retenue_motif']);
+	}
+	if (isset($_SESSION['retenue_travail'])) {
+		$travail = $_SESSION['retenue_travail'];
+		$travail=traitement_magic_quotes(corriger_caracteres($travail));
+		// Contrôle des saisies pour supprimer les sauts de lignes surnuméraires.
+		$travail=suppression_sauts_de_lignes_surnumeraires($travail);
+		//session_unregister("retenue_travail");
+	    unset($_SESSION['retenue_travail']);
+	}
+	if (isset($_SESSION['retenue_nom_resp'])) {
+	$nom_resp = $_SESSION['retenue_nom_resp'];
+	//session_unregister("retenue_nom_resp");
+	    unset($_SESSION['retenue_nom_resp']);
+	}
+	if (isset($_SESSION['retenue_fct_resp'])) {
+		$fct_resp = $_SESSION['retenue_fct_resp'];
+		//session_unregister("retenue_fct_resp");
+	    unset($_SESSION['retenue_fct_resp']);
+	}
+
+	if (isset($_SESSION['retenue_nature_incident'])) {
+		$nature_incident = $_SESSION['retenue_nature_incident'];
+		$nature_incident=traitement_magic_quotes(corriger_caracteres($nature_incident));
+		// Contrôle des saisies pour supprimer les sauts de lignes surnuméraires.
+		$nature_incident=suppression_sauts_de_lignes_surnumeraires($nature_incident);
+		// session_unregister("retenue_nature_incident");
+	    unset($_SESSION['retenue_nature_incident']);
+	}
+
+	$date_retenue ='';
+	$duree ='';
+	$h_deb ='';
+	$num_incident = '';
+    $ad_nom_resp= '';
+	$adr1_resp= '';
+	$adr2_resp= '';
+	$adr3_resp= '';
+	$cp_resp= '';
+	$commune_resp= '';
+
+} // formulaire_retenue
+
+//$nature_incident='Scrogneugneu';
+
+// Quand on génère la retenue par le module Modèle openDocument, la $nature_incident n'est pas récupérée.
+// Elle ne l'est que si on génère la retenue depuis le module Discipline
+if(!isset($nature_incident)) {$nature_incident="";}
+
+//
+// Fin zone de traitement Les données qui seront fusionnées au modèle
+//
+
+
+$TBS = new clsTinyButStrong; // new instance of TBS
+$TBS->Plugin(TBS_INSTALL, OPENTBS_PLUGIN); // load OpenTBS plugin
+
+
+// Load the template
+$nom_fichier_modele_ooo ='retenue.odt';
+
+//Procédure du traitement à effectuer
+//les chemins contenant les données
+include_once ("./lib/chemin.inc.php");
+
+$nom_fichier = $nom_dossier_modele_a_utiliser.$nom_fichier_modele_ooo;
+
+$TBS->LoadTemplate($nom_fichier, OPENTBS_ALREADY_UTF8);
+
+//Génération du nom du fichier
+$now = gmdate('d_M_Y_H:i:s');
+$nom_fichier_modele = explode('.',$nom_fichier_modele_ooo);
+$nom_fic = remplace_accents($nom_fichier_modele[0]."_".$classe."_".$nom_prenom_eleve."_généré_le_".$now.".".$nom_fichier_modele[1],'all');
+
+
+$TBS->Show(OPENTBS_DOWNLOAD+TBS_EXIT, $nom_fic);
+
+
+
+?>

@@ -1,0 +1,136 @@
+/*
+*
+* Copyright 2016 Régis Bouguin
+*
+* This file is part of GEPI.
+*
+* GEPI is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 3 of the License, or
+* (at your option) any later version.
+*
+* GEPI is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with GEPI; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+*/
+
+form {
+    margin: 1em;
+}
+
+table {
+    margin-bottom: 1em;
+}
+
+th {
+    padding-left: .5em;
+    padding-right: .5em;
+}
+
+select {
+    margin-top: .5em;
+}
+input {
+    margin-top: .5em;
+}
+
+.lsun_cadre {
+    display: block; 
+    margin-top: .5em; 
+    padding-top: .5em; 
+    padding-bottom: .5em; 
+    border: 1px solid black; 
+    text-align: center; 
+    border-radius: 10px 0 10px 0;
+}
+
+.btnEfface {
+    border:none;
+    background-image:url('../../images/icons/delete.png');
+    background-repeat:no-repeat;
+    background-position:top left;
+    font-size:0;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.btnValide {
+    border:none;
+    background-repeat:no-repeat;
+    background-position:top left;
+    width: 20px;
+    height: 20px;
+    color: #29ad10;
+    font-size:0;
+    background-image:url('../../images/enabled.png');
+    cursor: pointer;
+}
+
+.btnLien {
+    border:none;
+    background-repeat:no-repeat;
+    background-position:top left;
+    width: 20px;
+    height: 20px;
+    color: #29ad10;
+    font-size:0;
+    background-image:url('../../images/lien.png');
+    cursor: pointer;
+}
+
+.btnSupprime {
+    border:none;
+    background-repeat:no-repeat;
+    background-position:top left;
+    width: 20px;
+    height: 20px;
+    font-size:0;
+    background-image:url('../../images/disabled.png');
+    cursor: pointer;
+}
+
+table {
+    border-width:1px; 
+    border-style:solid; 
+    border-color:black;
+ }
+td ,th { 
+    border-width:1px;
+    border-style:solid; 
+    border-color:black;
+    text-align: center;
+ }
+ 
+ .lsun3colonnes {
+    display: table;
+    width: 100%;
+    border-collapse: separate;
+ }
+ 
+.lsun3colonnes > div {
+  display: table-cell;
+  width: 24%; /* 100%/3 = 3 colonnes */
+  padding: 20px;
+  border: 5px #F2F2F2 solid;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15) inset;
+  text-align: center;
+}
+
+textarea , select {
+    vertical-align: middle;
+}
+
+button {
+    margin: .5em
+}
+
+.pasPuces {
+    list-style:none;
+}
+
